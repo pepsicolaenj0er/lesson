@@ -10,7 +10,7 @@ for key, value in students.items():
     print(key)
 NumberOfRatings = sum(students.values())
 NumberStudents = len(students)
-averageBall = total_grade / num_students
+averageBall = NumberOfRatings / NumberStudents
 print (averageBall)
 
 students.update({
