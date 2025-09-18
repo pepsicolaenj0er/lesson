@@ -5,7 +5,7 @@ for i in nums:
        newNums.append(i)
 
 zxc = max(newNums)
-cxz = [x for x in newNums if x != zxc]
+cxz = [x for ox in newNums if x != zxc]
 secondZxc = max(cxz) 
 print(newNums)
 print(secondZxc)
