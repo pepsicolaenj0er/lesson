@@ -5,11 +5,8 @@ avgCheck = sumOrders / len(orders)
 print("средний чек равен = ", avgCheck)
 orderCounts = {}
 for zxc in orders:
-    if zxc in orderCounts: 
-        orderCounts[zxc]+=1 
-    else:
-        orderCounts[zxc]=1
+    orderCounts[zxc] = orderCounts.get(zxc, 0) + 1
 
 sortedOrders = sorted(orderCounts.items(), key=lambda x: x[1],reverse=True)
 top_1 = sortedOrders[0]
-print(top_1)
+print("самый популярный заказ =" , *top_1)
