@@ -8,19 +8,16 @@ passwords = [
     "Qwe123!@#",
 ]
 
-verifiedPassword = [] 
-for password in passwords: 
-    verifiedPassword.append(password)
-    if not re.search(r"[A-Z]",password):          
-        print("слабый")
-    elif not re.search(r"[0-9]",password):          
-        print("слабый")
-    elif not re.search(r"[!@#$%^&*]",password):          
-        print("слабый")
-    elif len(password) < 8:
-        print("слабый")
+rules = [
+    (lambda s: len(s) >= 8, "меньше 8 символов"),
+    (lambda s: re.search(r"[A-Z]", s), "нет заглавной буквы"),
+    (lambda s: re.search(r"[0-9]", s), "нет цифры"),
+    (lambda s: re.search(r"[!@#$%^&*]", s), "нет спецсимвола"),
+]
+
+for password in passwords:
+    errors = [msg for rule, msg in rules if not rule(password)]
+    if errors:
+        print(password, "→ слабый (" + ", ".join(errors) + ")")
     else:
-        print("надежный")
-
-    
-
+        print(password, "→ надёжный")
