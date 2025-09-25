@@ -22,5 +22,7 @@ for password in passwords:
     else:
         print("надежный")
 
+
+
     
 
