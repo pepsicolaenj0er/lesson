@@ -28,11 +28,11 @@ def solve(step, used_hero, dire, radiant):
             new_used_hero = used_hero | (1 << hero)
             result = solve(step + 1, new_used_hero, dire, radiant)
             if team == 1:
-                if result > best_result:
-                    best_result = result
+                max(best_result, result)
+                best_result = result
             else:
-                if result < best_result:
-                    best_result = result
+                min(best_result, result)
+                best_result = result
         return best_result
     else:  
         best_result = None
@@ -47,11 +47,11 @@ def solve(step, used_hero, dire, radiant):
                 best_result = result
             else:
                 if team == 1:
-                    if result > best_result:
-                        best_result = result
+                    max(best_result, result)
+                    best_result = result
                 else:
-                    if result < best_result:
-                        best_result = result
+                    min(best_result, result)
+                    best_result = result
         return best_result
 
 print(solve(0, 0, 0, 0))
