@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 import random
 import string
+import bcrypt
+
 
 def generate_password(length=12):
     chars = string.ascii_letters + string.digits + "!@#$%^&*()"
@@ -11,55 +14,70 @@ print(generate_password())
 
 app = FastAPI()
 
+class UserCredentials(BaseModel):
+    username: str
+    password: str
+
 users = {}
 
 @app.post("/register")
-def register(username: str, password: str):
-    if username in users:
-        return {"error": "Пользователь уже существует"}
+def register(data: UserCredentials):
+username = data.username
+password = data.password
+
+hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     users[username] = {
-        "password": password,
+        "password": hashed_pw,
         "failed_attempts": 0,
         "blocked": False
     }
-    return {"message": f"Пользователь {username} успешно зарегистрирован"}
+    return {"status": "ok", "message": "Пользователь {username} успешно зарегистрирован!"}
+
 
 
 @app.post("/auth")
-def auth(username: str, password: str):
+def auth(data: UserCredentials):
+username = data.username
+password = data.password
+
     if username not in users:
-        return {"error": "Пользователь не найден"}
+        return {"status": "error", "message": "пользователь не найден"}
 
     user = users[username]
 
     if user["blocked"]:
-        return {"error": "Пользователь заблокирован. Сбросьте пароль через /reset"}
+        return {"status": "error", "message": "Пользователь заблокирован. Сбросьте пароль через /reset"}
 
-    if password != user["password"]:
+    if not bcrypt.checkpw(password.encode(), user["password"].encode()):
         user["failed_attempts"] += 1
         if user["failed_attempts"] >= 3:
             user["blocked"] = True
-            return {"error": "Аккаунт заблокирован после 3 неверных попыток."}
-        return {"error": f"Неверный пароль. Осталось попыток: {3 - user['failed_attempts']}"}
+            return {"status": "error", "message": "Аккаунт заблокирован после 3 неверных попыток"}
+        return {"status": "error", "message": f"Неверный пароль. Осталось попыток: {3 - user['failed_attempts']}"}
 
     user["failed_attempts"] = 0
-    return {"message": f"Добро пожаловать, {username}!"}
+    return {"status": "ok","message": f"Добро пожаловать, {username}!"}
 
 
 @app.post("/reset")
-def reset(username: str, new_password: str):
+def reset(data: UserCredentials):
+username = data.username
+
     if username not in users:
-        return {"error": "Пользователь не найден"}
+        return {"status":"error", "message": "Пользователь не найден"}
 
     user = users[username]
 
     if not user["blocked"]:
-        return {"message": "Ваш аккаунт не заблокирован. Смена пароля не требуется"}
+        return {"status":"error","message": "Ваш аккаунт не заблокирован. Смена пароля не требуется"}
 
-    user["password"] = new_password
+    new_password = generate_password()
+    hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+    user["password"] = hashed
     user["failed_attempts"] = 0
     user["blocked"] = False
 
-    return {"message": f"Пароль для {username} успешно изменён, аккаунт разблокирован."}
+
+    return {"status":"ok","message": f"Пароль для {username} успешно изменён, аккаунт разблокирован."}
 
